@@ -1,6 +1,5 @@
 [workspace]
 members = ["lsp"]
-default-members = ["."]
 resolver = "2"
 
 [package]
