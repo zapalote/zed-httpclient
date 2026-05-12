@@ -1,22 +1,19 @@
 
 ### Simple GET Request
-GET http://example.com/api/data
+GET https://jsonplaceholder.typicode.com/todos/1
 Accept: application/json
 Cache-Control: no-cache
 
-###
-
 ### POST Request with JSON Body
-POST http://example.com/api/users
+POST https://jsonplaceholder.typicode.com/posts
 Content-Type: application/json
 Authorization: Bearer your_access_token_here
 
 {
-  "name": "John Doe",
-  "email": "john.doe@example.com"
+    title: 'foo',
+    body: 'bar',
+    userId: 1,
 }
-
-###
 
 ### PUT Request with URL Parameters and Headers
 PUT http://example.com/api/users/123?active=true
@@ -27,19 +24,14 @@ X-Custom-Header: 12345
   "status": "active"
 }
 
-###
-
 ### DELETE Request
-DELETE http://example.com/api/users/123
+DELETE https://jsonplaceholder.typicode.com/posts/1
 Authorization: Bearer your_access_token_here
 
-###
 
 ### HEAD Request
 HEAD http://example.com/api/users
 Accept: application/json
-
-###
 
 
 ### PATCH Request with XML Body

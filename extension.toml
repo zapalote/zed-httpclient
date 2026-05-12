@@ -1,7 +1,7 @@
 id = "http-rest"
-name = "http"
+name = "http-rest"
 description = "Executes REST requests in .http files"
-version = "0.0.1"
+version = "0.1.0"
 schema_version = 1
 authors = ["tylerhanson921@gmail.com", "malbrecht@zapalote.com"]
 repository = "https://github.com/zapalote/zed-http"
@@ -10,3 +10,6 @@ repository = "https://github.com/zapalote/zed-http"
 [grammars.http]
 repository = "http://github.com/rest-nvim/tree-sitter-http"
 commit = "e061995f0caf2fa30f68fa1fdf2c08bcbd4629a8"
+
+[language_servers.http-lsp]
+language = "http"

@@ -6,4 +6,4 @@ The `zed-http` extension provides robust syntax highlighting for `.http` files i
 ## Features
 - Syntax highlighting for HTTP methods, headers, URLs, and bodies.
 - Supports standard HTTP methods such as GET, POST, PUT, DELETE, PATCH, and OPTIONS.
-- Future updates will hopefully include the ability to make HTTP requests directly from the editor.
+- This update supports HTTP requests directly from the editor.
