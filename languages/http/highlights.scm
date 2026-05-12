@@ -1,35 +1,29 @@
-; Highlight HTTP methods
+; Methods
 (method) @function.method
 
-; Highlight HTTP comments
+; Comments
 (comment) @comment
 
-; Highlight URLs and paths
-(target_url) @string.url
-(host) @string.url
-(path) @string.url
+; URLs
+(target_url) @string.special.url
 
-; Highlight HTTP headers
+; Headers
 (header name: (name) @property)
 (header value: (value) @string)
 
-; Highlight HTTP status codes and status texts
-(status_code) @constant.numeric
-(status_text) @constant.language
+; Status
+(status_code) @number
+(status_text) @string
 
-; Highlight HTTP versions
-(http_version) @keyword
+; HTTP version
+(http_version) @constant
 
-; Highlight variables and script variables
+; Variables
 (variable) @variable
-(script_variable) @variable.special
+(variable_declaration) @variable
 
-; Highlight different types of request bodies
-(json_body) @string.special
-(xml_body) @string.special
-(graphql_body) @string.special
-(external_body) @string.special
-(form_data) @string.special
-
-; Highlight query parameters
-(query_param) @string
+; Bodies
+(json_body) @string
+(xml_body) @string
+(graphql_body) @string
+(external_body) @string

@@ -10,9 +10,9 @@ Content-Type: application/json
 Authorization: Bearer your_access_token_here
 
 {
-    title: 'foo',
-    body: 'bar',
-    userId: 1,
+  "title": "foo",
+  "body": "bar",
+  "userId": 1
 }
 
 ### PUT Request with URL Parameters and Headers
