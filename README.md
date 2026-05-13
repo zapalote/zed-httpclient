@@ -48,21 +48,34 @@ The response is saved as `<name>.response.http` in the same directory and opened
 
 ## Variables
 
-Variables can be defined in `.env` files.
-This is essential to avoid cluttering test files with sensitive information.
+Variables can be defined in `.env` files and substituted in requests using the `{{VAR}}` syntax.
+This is essential to avoid cluttering request files with sensitive information.
 
 ```
 BASE_URL=https://example.com
 TOKEN=your_secret_token
 ```
 
-Variables are substituted in requests using the `{{var}}` syntax.
-
-```
+```http
 ### Get user
 GET {{BASE_URL}}/users/1
 Authorization: Bearer {{TOKEN}}
+```
 
+### Env file resolution
+
+The env file is resolved in this order:
+
+1. **`# ENV=path`** — an explicit path declared anywhere in the `.http` file (relative paths are resolved from the file's directory)
+2. **`<stem>.env`** — a file named after the request file, e.g. `myapi.env` next to `myapi.http`
+3. **`.env`** — a plain `.env` file in the same directory
+
+```http
+# ENV=../secrets/staging.env
+
+### Get user
+GET {{BASE_URL}}/users/1
+Authorization: Bearer {{TOKEN}}
 ```
 
 ## Installation
@@ -76,7 +89,7 @@ This extension is not available on the Zed extension marketplace. The reason bei
 ```sh
 git clone https://github.com/zapalote/zed-httpclient
 cd zed-httpclient
-cargo install --path lsp        # installs zed-http-lsp to ~/.cargo/bin
+cargo install --path lsp        # installs zed-http-lsp to ~/.cargo/bin (must be in $PATH)
 ```
 
 Then in Zed, open the `zed-httpclient` folder and run **"zed: install dev extension"** from the command palette (Ctrl+Shift+P or Cmd+Shift+P).
@@ -87,7 +100,7 @@ Then in Zed, open the `zed-httpclient` folder and run **"zed: install dev extens
 
 ## Known limitations
 
-- no support for indicating the HTTP version, only HTTP/1.1 supported
+- no support for indicating the HTTP version, only HTTP/1.1 is supported
 - HTML body syntax injection is not available in this version (grammar constraint)
 
 ## License

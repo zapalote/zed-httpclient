@@ -16,6 +16,7 @@
 //! HTTP request: a method+URL line, optional headers, an optional blank-line-delimited body.
 //! Variable placeholders (`{{VAR}}`) are substituted from a `.env` file at execution time.
 
+use regex::RegexBuilder;
 use std::collections::HashMap;
 
 /// A parsed HTTP request, ready to execute.
@@ -93,7 +94,11 @@ pub fn parse_request_at_line(content: &str, separator_line: u32) -> Option<HttpR
         // Trim trailing blank lines from the body.
         let trimmed: Vec<&str> = {
             let mut v = lines;
-            while v.last().map(|l: &&str| l.trim().is_empty()).unwrap_or(false) {
+            while v
+                .last()
+                .map(|l: &&str| l.trim().is_empty())
+                .unwrap_or(false)
+            {
                 v.pop();
             }
             v
@@ -107,6 +112,18 @@ pub fn parse_request_at_line(content: &str, separator_line: u32) -> Option<HttpR
         headers,
         body,
     })
+}
+
+/// Returns the `.env` filepath from an `ENV=filepath` comment line.
+pub fn find_env_filepath(content: &str) -> Option<&str> {
+    let re = RegexBuilder::new(r"^\s*#\s*ENV\s*=\s*(?P<path>.*)$")
+        .multi_line(true)
+        .build()
+        .unwrap();
+
+    re.captures(content)
+        .and_then(|c| c.name("path"))
+        .map(|m| m.as_str())
 }
 
 /// Parses a `.env` file into a variable map.
@@ -196,7 +213,10 @@ Authorization: Bearer token123
         let req = parse_request_at_line(SAMPLE, lines[0]).unwrap();
         assert_eq!(req.method, "GET");
         assert_eq!(req.url, "http://example.com/api/data");
-        assert_eq!(req.headers, vec![("Accept".to_string(), "application/json".to_string())]);
+        assert_eq!(
+            req.headers,
+            vec![("Accept".to_string(), "application/json".to_string())]
+        );
         assert!(req.body.is_none());
     }
 
@@ -238,7 +258,10 @@ Authorization: Bearer token123
 
     #[test]
     fn normalizes_double_slash_after_substitution() {
-        let vars = HashMap::from([("BASE_URL".to_string(), "https://api.example.com/".to_string())]);
+        let vars = HashMap::from([(
+            "BASE_URL".to_string(),
+            "https://api.example.com/".to_string(),
+        )]);
         let req = HttpRequest {
             method: "GET".to_string(),
             url: "{{BASE_URL}}/users".to_string(),

@@ -12,6 +12,7 @@
 mod parser;
 
 use std::collections::HashMap;
+use std::path::PathBuf;
 use std::sync::Arc;
 
 use anyhow::Context;
@@ -131,13 +132,38 @@ impl LanguageServer for Backend {
             }
         };
 
-        // Load .env from the same directory and substitute {{VAR}} placeholders.
-        // Read fresh on every execution so edits to .env take effect immediately.
-        let env_vars = match uri
-            .to_file_path()
-            .ok()
-            .and_then(|p| p.parent().map(|d| d.join(".env")))
-        {
+        let file_path = match uri.to_file_path().ok() {
+            Some(p) => p,
+            None => return Ok(None),
+        };
+        let http_dir = match file_path.parent() {
+            Some(d) => d.to_path_buf(),
+            None => return Ok(None),
+        };
+        let stem = match file_path.file_stem() {
+            Some(s) => s.to_string_lossy().into_owned(),
+            None => return Ok(None),
+        };
+
+        // env file resolution (in priority order):
+        // 1. # ENV=path declaration in the .http file
+        // 2. <stem>.env in the same directory
+        // 3. .env in the same directory
+        // Read fresh on every execution so edits take effect immediately.
+        let env_filepath = parser::find_env_filepath(&content)
+            .map(|s| {
+                let p = PathBuf::from(s);
+                if p.is_absolute() { p } else { http_dir.join(p) }
+            })
+            .or_else(|| {
+                let p = http_dir.join(format!("{}.env", stem));
+                p.exists().then_some(p)
+            })
+            .or_else(|| {
+                let p = http_dir.join(".env");
+                p.exists().then_some(p)
+            });
+        let env_vars = match env_filepath {
             Some(path) => tokio::fs::read_to_string(path)
                 .await
                 .map(|s| parser::load_env(&s))
@@ -146,16 +172,7 @@ impl LanguageServer for Backend {
         };
         let request = parser::apply_vars(request, &env_vars);
 
-        // Response is written to <stem>.response.http next to the source file.
-        // We dont't cache the response, the api backend may have changed the response data.
-        let response_path = match uri.to_file_path().ok().and_then(|p| {
-            let stem = p.file_stem()?.to_string_lossy().into_owned();
-            p.parent()
-                .map(|dir| dir.join(format!("{}.response.http", stem)))
-        }) {
-            Some(p) => p,
-            None => return Ok(None),
-        };
+        let response_path = http_dir.join(format!("{}.response.http", stem));
 
         let response_uri = match Url::from_file_path(&response_path) {
             Ok(u) => u,

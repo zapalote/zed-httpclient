@@ -1,4 +1,4 @@
-
+# ENV=./prod.env
 ### Simple GET Request
 GET https://jsonplaceholder.typicode.com/todos/1
 Accept: application/json
