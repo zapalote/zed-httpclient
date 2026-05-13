@@ -1,6 +1,6 @@
 name = "http"
 grammar = "http"
-path_suffixes = ["http"]
+path_suffixes = ["http", "rest"]
 language_servers = ["http-lsp"]
 
 brackets = [

@@ -7,7 +7,7 @@ Cache-Control: no-cache
 ### POST Request with JSON Body
 POST https://jsonplaceholder.typicode.com/posts
 Content-Type: application/json
-Authorization: Bearer your_access_token_here
+Authorization: Bearer {{TOKEN}}
 
 {
   "title": "foo",
@@ -16,7 +16,7 @@ Authorization: Bearer your_access_token_here
 }
 
 ### PUT Request with URL Parameters and Headers
-PUT http://example.com/api/users/123?active=true
+PUT {{BASE_URL}}/api/users/123?active=true
 Content-Type: application/json
 X-Custom-Header: 12345
 
@@ -30,14 +30,14 @@ Authorization: Bearer your_access_token_here
 
 
 ### HEAD Request
-HEAD http://example.com/api/users
+HEAD {{BASE_URL}}/api/users
 Accept: application/json
 
 
 ### PATCH Request with XML Body
-PATCH http://example.com/api/users/123
+PATCH {{BASE_URL}}/api/users/123
 Content-Type: application/xml
-Authorization: Bearer your_access_token_here
+Authorization: Bearer {{TOKEN}}
 
 <?xml version="1.0" encoding="UTF-8"?>
 <user>
