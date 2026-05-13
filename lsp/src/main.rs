@@ -149,11 +149,14 @@ impl LanguageServer for Backend {
         // 1. # ENV=path declaration in the .http file
         // 2. <stem>.env in the same directory
         // 3. .env in the same directory
-        // Read fresh on every execution so edits take effect immediately.
         let env_filepath = parser::find_env_filepath(&content)
             .map(|s| {
                 let p = PathBuf::from(s);
-                if p.is_absolute() { p } else { http_dir.join(p) }
+                if p.is_absolute() {
+                    p
+                } else {
+                    http_dir.join(p)
+                }
             })
             .or_else(|| {
                 let p = http_dir.join(format!("{}.env", stem));
@@ -163,6 +166,7 @@ impl LanguageServer for Backend {
                 let p = http_dir.join(".env");
                 p.exists().then_some(p)
             });
+        // Read env file fresh on every execution so edits take effect immediately.
         let env_vars = match env_filepath {
             Some(path) => tokio::fs::read_to_string(path)
                 .await
@@ -170,10 +174,11 @@ impl LanguageServer for Backend {
                 .unwrap_or_default(),
             None => HashMap::new(),
         };
+        // and apply them to the request (uri, headers, body)
         let request = parser::apply_vars(request, &env_vars);
 
+        // create response path and uri
         let response_path = http_dir.join(format!("{}.response.http", stem));
-
         let response_uri = match Url::from_file_path(&response_path) {
             Ok(u) => u,
             Err(_) => return Ok(None),
@@ -201,8 +206,10 @@ impl LanguageServer for Backend {
             })
             .await;
 
+        // send the request and get the response
         let result = run_request(request).await;
 
+        // stop the spinner (indicate request is complete)
         self.client
             .send_notification::<notification::Progress>(ProgressParams {
                 token,
@@ -212,6 +219,7 @@ impl LanguageServer for Backend {
             })
             .await;
 
+        // write the response to the response path
         match result {
             Ok(response_text) => {
                 if let Err(e) = tokio::fs::write(&response_path, &response_text).await {
@@ -221,11 +229,13 @@ impl LanguageServer for Backend {
                     return Ok(None);
                 }
                 // Returning a Location causes Zed to open the file in a preview tab.
+                // We use Zed's built-in go_to_definition response type to do this.
                 Ok(Some(GotoDefinitionResponse::Scalar(Location {
                     uri: response_uri,
                     range: Range::default(),
                 })))
             }
+            // or show an error message if the request fails
             Err(e) => {
                 self.client
                     .show_message(MessageType::ERROR, format!("Request failed: {e:#}"))
@@ -296,7 +306,7 @@ async fn run_request(req: parser::HttpRequest) -> anyhow::Result<String> {
     let headers = response.headers().clone();
     let body_bytes = response.bytes().await.context("reading response body")?;
 
-    // Fake request line makes the grammar parse this as a valid request node.
+    // Fake request line makes the grammar parse this as a valid for syntax highlighting.
     let mut out = format!(
         "{} {} HTTP/1.1\n{} {} {}\n",
         req.method,
@@ -306,6 +316,7 @@ async fn run_request(req: parser::HttpRequest) -> anyhow::Result<String> {
         status.canonical_reason().unwrap_or("Unknown"),
     );
 
+    // add response headers to the output
     for (name, value) in &headers {
         if let Ok(v) = value.to_str() {
             out.push_str(&format!("{}: {}\n", name, v));
@@ -313,6 +324,7 @@ async fn run_request(req: parser::HttpRequest) -> anyhow::Result<String> {
     }
     out.push('\n');
 
+    // check if the response is JSON and format it accordingly
     let is_json = headers
         .get(reqwest::header::CONTENT_TYPE)
         .and_then(|v| v.to_str().ok())
@@ -329,11 +341,13 @@ async fn run_request(req: parser::HttpRequest) -> anyhow::Result<String> {
         out.push_str(&String::from_utf8_lossy(&body_bytes));
     }
 
+    // ship it
     Ok(out)
 }
 
 #[tokio::main]
 async fn main() {
+    // start the LSP server
     let stdin = tokio::io::stdin();
     let stdout = tokio::io::stdout();
 
