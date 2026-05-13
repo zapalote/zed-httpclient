@@ -48,7 +48,7 @@ The response is saved as `<name>.response.http` in the same directory and opened
 
 ## Variables
 
-Variables can be defined in `.env` files (see [dotenv](https://crates.io/crates/dotenv)).
+Variables can be defined in `.env` files.
 This is essential to avoid cluttering test files with sensitive information.
 
 ```
@@ -81,7 +81,7 @@ cargo install --path lsp        # installs zed-http-lsp to ~/.cargo/bin
 
 Then in Zed, open the `zed-httpclient` folder and run **"zed: install dev extension"** from the command palette (Ctrl+Shift+P or Cmd+Shift+P).
 
-### Requirements
+## Requirements
 
 - Rust toolchain (to build and install the `zed-http-lsp` binary). See [rustup](https://rustup.rs/) for installation instructions.
 
